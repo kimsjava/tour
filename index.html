@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>箱根 1泊2日 · 旅行スケジュール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#16211b;
+    --bg-deep:#101911;
+    --paper:#ece3cd;
+    --paper-dim:#ded2b3;
+    --ink:#241f16;
+    --ink-soft:#5c5340;
+    --gold:#a9803d;
+    --moss:#5c7561;
+    --line:#c9bf9f;
+    --rail:#3c4c3f;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(169,128,61,0.10), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(92,117,97,0.14), transparent 45%);
+    color:var(--paper);
+    font-family:'Noto Sans KR', sans-serif;
+    line-height:1.6;
+    padding:56px 20px 90px;
+  }
+
+  .page{
+    max-width:640px;
+    margin:0 auto;
+  }
+
+  /* ---------- Header ---------- */
+  header.hero{
+    margin-bottom:44px;
+  }
+
+  .hero-eyebrow{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    color:var(--gold);
+    font-size:13px;
+    letter-spacing:0.02em;
+    margin-bottom:10px;
+  }
+  .hero-eyebrow .dot{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--gold);
+  }
+
+  h1{
+    font-family:'Noto Serif KR', serif;
+    font-weight:700;
+    font-size:clamp(30px,6vw,42px);
+    margin:0 0 12px;
+    color:#f5efdd;
+    letter-spacing:-0.01em;
+  }
+
+  .route-line{
+    font-size:15px;
+    color:var(--paper-dim);
+    border-top:1px solid rgba(236,227,205,0.18);
+    padding-top:16px;
+    margin-top:20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 4px;
+  }
+  .route-line span.node{ color:#f5efdd; }
+  .route-line span.arrow{ color:var(--moss); opacity:0.9; }
+
+  /* ---------- Legend ---------- */
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:28px 0 48px;
+  }
+  .legend-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(236,227,205,0.06);
+    border:1px solid rgba(236,227,205,0.16);
+    padding:6px 12px 6px 10px;
+    border-radius:999px;
+    font-size:12.5px;
+    color:var(--paper-dim);
+  }
+  .legend-item .ic{ font-size:14px; }
+
+  /* ---------- Day accordion ---------- */
+  .day{
+    border-top:1px solid rgba(236,227,205,0.22);
+  }
+  .day:last-of-type{
+    border-bottom:1px solid rgba(236,227,205,0.22);
+  }
+
+  .day-toggle{
+    width:100%;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:22px 0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:inherit;
+    font-family:inherit;
+    text-align:left;
+  }
+
+  .day-toggle .day-title{
+    font-family:'Noto Serif KR', serif;
+    font-size:22px;
+    color:#f5efdd;
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+  }
+  .day-toggle .day-title small{
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:13px;
+    color:var(--moss);
+    font-weight:500;
+  }
+
+  .day-toggle .chev{
+    width:22px;height:22px;
+    flex:none;
+    color:var(--gold);
+    transition:transform .35s ease;
+  }
+  .day[data-open="true"] .day-toggle .chev{
+    transform:rotate(180deg);
+  }
+
+  .day-panel{
+    overflow:hidden;
+    max-height:0;
+    transition:max-height .45s ease;
+  }
+  .day[data-open="true"] .day-panel{
+    max-height:4000px;
+  }
+
+  .day-panel-inner{
+    padding:4px 0 32px 0;
+  }
+
+  /* ---------- Timeline (stops as accordion items) ---------- */
+  .timeline{
+    position:relative;
+    padding-left:34px;
+  }
+  .timeline::before{
+    content:"";
+    position:absolute;
+    left:9px; top:6px; bottom:6px;
+    width:1px;
+    background:var(--rail);
+  }
+
+  .stop{
+    position:relative;
+    margin-bottom:6px;
+  }
+  .stop::before{
+    content:"";
+    position:absolute;
+    left:-29px; top:18px;
+    width:9px; height:9px;
+    border-radius:50%;
+    background:var(--bg);
+    border:1.5px solid var(--gold);
+  }
+
+  .stop-toggle{
+    width:100%;
+    background:rgba(236,227,205,0.04);
+    border:1px solid rgba(236,227,205,0.14);
+    border-radius:var(--radius);
+    cursor:pointer;
+    color:inherit;
+    font-family:inherit;
+    text-align:left;
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .stop-toggle:hover{
+    border-color:rgba(169,128,61,0.55);
+  }
+  .stop-toggle:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+
+  .stop-time{
+    font-variant-numeric:tabular-nums;
+    font-size:13px;
+    color:var(--gold);
+    width:44px;
+    flex:none;
+  }
+  .stop-icon{
+    font-size:18px;
+    flex:none;
+    width:22px;
+    text-align:center;
+  }
+  .stop-name{
+    flex:1;
+    font-size:15px;
+    color:#f5efdd;
+  }
+  .stop-tag{
+    font-size:11px;
+    color:var(--ink);
+    background:var(--paper-dim);
+    padding:2px 8px;
+    border-radius:999px;
+    flex:none;
+  }
+  .stop-plus{
+    width:16px;height:16px;
+    flex:none;
+    color:var(--paper-dim);
+    transition:transform .3s ease;
+  }
+  .stop[data-open="true"] .stop-plus{ transform:rotate(45deg); color:var(--gold); }
+
+  .stop-detail{
+    overflow:hidden;
+    max-height:0;
+    transition:max-height .35s ease;
+  }
+  .stop[data-open="true"] .stop-detail{ max-height:300px; }
+
+  .stop-detail-inner{
+    padding:12px 14px 6px 14px;
+    margin-left:0;
+    font-size:13.5px;
+    color:var(--paper-dim);
+    border-left:1px solid rgba(236,227,205,0.14);
+    margin-top:2px;
+  }
+  .stop-detail-inner b{ color:#f5efdd; font-weight:500; }
+
+  footer{
+    margin-top:40px;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .day-panel, .stop-detail, .chev, .stop-plus{ transition:none; }
+  }
+
+  /* ---------- Gate ---------- */
+  .page{ display:none; }
+  .page.unlocked{ display:block; }
+
+  #gate{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    z-index:100;
+  }
+  #gate.hidden{ display:none; }
+
+  .gate-box{
+    width:100%;
+    max-width:320px;
+    text-align:center;
+  }
+  .gate-box .gate-eyebrow{
+    font-size:13px;
+    color:var(--gold);
+    margin-bottom:8px;
+  }
+  .gate-box h2{
+    font-family:'Noto Serif KR', serif;
+    font-size:22px;
+    color:#f5efdd;
+    margin:0 0 24px;
+    font-weight:700;
+  }
+  #gate-input{
+    width:100%;
+    background:rgba(236,227,205,0.06);
+    border:1px solid rgba(236,227,205,0.28);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    font-size:15px;
+    color:#f5efdd;
+    font-family:inherit;
+    text-align:center;
+    letter-spacing:0.08em;
+  }
+  #gate-input:focus{
+    outline:none;
+    border-color:var(--gold);
+  }
+  #gate-submit{
+    width:100%;
+    margin-top:12px;
+    background:var(--gold);
+    color:#16211b;
+    border:none;
+    border-radius:var(--radius);
+    padding:12px 14px;
+    font-size:15px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  #gate-submit:hover{ filter:brightness(1.08); }
+  #gate-error{
+    margin-top:14px;
+    font-size:13px;
+    color:#c9776b;
+    min-height:16px;
+  }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-eyebrow">箱根・小田原の旅</div>
+    <h2>パスワードを入力してください</h2>
+    <input type="password" id="gate-input" placeholder="••••••••" inputmode="numeric" autocomplete="off">
+    <button id="gate-submit">確認</button>
+    <div id="gate-error"></div>
+  </div>
+</div>
+
+<div class="page" id="page">
+
+  <header class="hero">
+    <div class="hero-eyebrow"><span class="dot"></span>9月21日(月)～22日(火) · 1泊2日</div>
+    <h1>箱根・小田原の旅</h1>
+    <div class="route-line">
+      <span class="node">自宅</span><span class="arrow">→</span>
+      <span class="node">小田原</span><span class="arrow">→</span>
+      <span class="node">箱根仙石原</span><span class="arrow">→</span>
+      <span class="node">風祭</span><span class="arrow">→</span>
+      <span class="node">品川</span>
+    </div>
+  </header>
+
+  <div class="legend" aria-label="アイコン凡例">
+    <div class="legend-item"><span class="ic">🏠</span>自宅</div>
+    <div class="legend-item"><span class="ic">🚃</span>電車</div>
+    <div class="legend-item"><span class="ic">🚄</span>特急列車</div>
+    <div class="legend-item"><span class="ic">🏯</span>観光</div>
+    <div class="legend-item"><span class="ic">🍽️</span>食事</div>
+    <div class="legend-item"><span class="ic">🚌</span>バス</div>
+    <div class="legend-item"><span class="ic">🏨</span>ホテル</div>
+    <div class="legend-item"><span class="ic">🍸</span>バー</div>
+    <div class="legend-item"><span class="ic">🍢</span>体験</div>
+    <div class="legend-item"><span class="ic">🚉</span>駅</div>
+  </div>
+
+  <!-- ================= DAY 1 ================= -->
+  <section class="day" data-open="true">
+    <button class="day-toggle" aria-expanded="true">
+      <span class="day-title">1日目 <small>9月21日(月) · 東京 → 小田原 → 箱根</small></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="day-panel">
+      <div class="day-panel-inner">
+        <div class="timeline">
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">7:50</span>
+              <span class="stop-icon">🏠</span>
+              <span class="stop-name">自宅発</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">旅の始まり。西日暮里駅まで移動。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">8:09</span>
+              <span class="stop-icon">🚃</span>
+              <span class="stop-name">西日暮里発</span>
+              <span class="stop-tag">乗換</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">北千住駅へ移動し、特急列車の乗車準備。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">8:33</span>
+              <span class="stop-icon">🚄</span>
+              <span class="stop-name">北千住発 — メトロはこね91号</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">直通特急<b>メトロはこね91号</b>に乗車。座席は<b>6号車7C・7D・8C・8D</b>。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">10:24</span>
+              <span class="stop-icon">🚉</span>
+              <span class="stop-name">小田原駅着</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">約2時間の列車の旅を経て小田原に到着。荷物を預けたり駅周辺を散策したりできる。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">·</span>
+              <span class="stop-icon">🏯</span>
+              <span class="stop-name">小田原城 観光</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">駅から徒歩圏内。戦国時代の北条氏の居城で、天守閣の展望台から小田原市街と海を一望できる。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">·</span>
+              <span class="stop-icon">🍽️</span>
+              <span class="stop-name">ランチ</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">小田原城観光の後、近くで昼食。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">14:00</span>
+              <span class="stop-icon">🚌</span>
+              <span class="stop-name">小田原駅西口ロータリー発</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">ホテル行きの送迎バス（または路線バス）に乗車。箱根仙石原方面へ移動。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">15:00</span>
+              <span class="stop-icon">🏨</span>
+              <span class="stop-name">箱根仙石原プリンスホテル チェックイン</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">仙石原高原に位置するプリンスホテル。チェックイン後は自由時間 — 温泉や周辺散策がおすすめ。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">18:00</span>
+              <span class="stop-icon">🍽️</span>
+              <span class="stop-name">ディナー</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">ホテルのレストランで夕食。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">21:00</span>
+              <span class="stop-icon">🍸</span>
+              <span class="stop-name">バー</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">夜はホテルのバーでナイトキャップとして一日を締めくくる。</div></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DAY 2 ================= -->
+  <section class="day" data-open="true">
+    <button class="day-toggle" aria-expanded="true">
+      <span class="day-title">2日目 <small>9月22日(火) · 箱根 → 小田原 → 品川</small></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="day-panel">
+      <div class="day-panel-inner">
+        <div class="timeline">
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">7:00</span>
+              <span class="stop-icon">🍽️</span>
+              <span class="stop-name">朝食</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">ホテルで朝食。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">10:50</span>
+              <span class="stop-icon">🏨</span>
+              <span class="stop-name">チェックアウト</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">荷物をまとめてフロントでチェックアウト。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">11:00</span>
+              <span class="stop-icon">🚌</span>
+              <span class="stop-name">送迎バス発</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">ホテルの送迎バスで小田原駅まで移動。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">12:00</span>
+              <span class="stop-icon">🚉</span>
+              <span class="stop-name">小田原駅西口ロータリー着</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">約18分の余裕時間。箱根登山鉄道のホームへ移動。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">12:18</span>
+              <span class="stop-icon">🚋</span>
+              <span class="stop-name">小田原発 — 箱根登山鉄道</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">急な山岳区間を上り下りする登山鉄道。風祭駅まで約7分。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">12:25</span>
+              <span class="stop-icon">🚉</span>
+              <span class="stop-name">風祭駅着</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">かまぼこで有名な町。体験時間まで近くで昼食。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">·</span>
+              <span class="stop-icon">🍽️</span>
+              <span class="stop-name">ランチ</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">体験前に風祭周辺で食事。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">13:30</span>
+              <span class="stop-icon">🍢</span>
+              <span class="stop-name">かまぼこ・ちくわ作り体験</span>
+              <span class="stop-tag">~14:55</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">伝統的な練り物であるかまぼことちくわを自分で作る体験プログラム。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">15:00</span>
+              <span class="stop-icon">🍢</span>
+              <span class="stop-name">かまぼこ仕上がり</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">完成したかまぼこを受け取る。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">15:26</span>
+              <span class="stop-icon">🚋</span>
+              <span class="stop-name">風祭発</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">箱根登山鉄道で小田原方面へ戻る。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">15:33</span>
+              <span class="stop-icon">🚉</span>
+              <span class="stop-name">小田原着</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">東京行きの列車に乗り換え。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">15:53</span>
+              <span class="stop-icon">🚃</span>
+              <span class="stop-name">小田原発 (普通)</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">普通列車で出発。この後、特急踊り子号に乗り換える予定。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">16:18</span>
+              <span class="stop-icon">🚄</span>
+              <span class="stop-name">特急踊り子号 乗り換え</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">特急<b>踊り子号</b>に乗り換えて品川まで移動。</div></div>
+          </div>
+
+          <div class="stop">
+            <button class="stop-toggle" aria-expanded="false">
+              <span class="stop-time">17:17</span>
+              <span class="stop-icon">🚉</span>
+              <span class="stop-name">品川着</span>
+              <svg class="stop-plus" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="stop-detail"><div class="stop-detail-inner">旅の終わり。品川駅に到着。</div></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>1泊2日 · 東京 — 小田原 — 箱根仙石原 — 風祭 — 品川</footer>
+
+</div>
+
+<script>
+  (function(){
+    var PASSWORD = "12345678";
+    var gate = document.getElementById('gate');
+    var page = document.getElementById('page');
+    var input = document.getElementById('gate-input');
+    var submit = document.getElementById('gate-submit');
+    var error = document.getElementById('gate-error');
+
+    function unlock(){
+      gate.classList.add('hidden');
+      page.classList.add('unlocked');
+      try{ sessionStorage.setItem('hakone_unlocked', '1'); }catch(e){}
+    }
+
+    function tryUnlock(){
+      if(input.value === PASSWORD){
+        unlock();
+      }else{
+        error.textContent = 'パスワードが正しくありません。';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    try{
+      if(sessionStorage.getItem('hakone_unlocked') === '1'){ unlock(); }
+    }catch(e){}
+
+    submit.addEventListener('click', tryUnlock);
+    input.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') tryUnlock();
+    });
+  })();
+
+  document.querySelectorAll('.day-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const day = btn.closest('.day');
+      const open = day.getAttribute('data-open') === 'true';
+      day.setAttribute('data-open', String(!open));
+      btn.setAttribute('aria-expanded', String(!open));
+    });
+  });
+
+  document.querySelectorAll('.stop-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const stop = btn.closest('.stop');
+      const open = stop.getAttribute('data-open') === 'true';
+      stop.setAttribute('data-open', String(!open));
+      btn.setAttribute('aria-expanded', String(!open));
+    });
+  });
+</script>
+
+</body>
+</html>
